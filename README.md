@@ -1,15 +1,55 @@
-# "Express JS Tutorial - Routers"
+# "Express JS Tutorial - Routers with API"
 
-✅ [Check out my YouTube Channel with all of my tutorials](https://www.youtube.com/DaveGrayTeachesCode).
+1. First you may configure ```server.js``` file with requirements
+2. After that you may require middleware 
+3. Then you configure config file
+4. And Router will be configured with respect this
+   
+Here server file:
 
-**Description:**
+```
+const express = require('express');
+const app = express();
+const path = require('path');
+const cors = require('cors');
+const corsOptions = require('./config/corsOptions');
+const { logger } = require('./middleware/logEvents');
+const errorHandler = require('./middleware/errorHandler');
+const PORT = process.env.PORT || 3500;
 
-This repository shares the code applied during the Youtube tutorial. The tutorial is part of a [Node.js & Express for Beginners Playlist](https://www.youtube.com/playlist?list=PL0Zuz27SZ-6PFkIxaJ6Xx_X46avTM1aYw) on my channel.  
+// custom middleware logger
+app.use(logger);
 
-[YouTube Tutorial](https://youtu.be/Zh7psmf1KAA) for this repository.
+// built-in middleware to handle urlencoded data
+// in other words, form data:  
+// ‘content-type: application/x-www-form-urlencoded’
+app.use(express.urlencoded({ extended: false }));
 
-I suggest completing my [8 hour JavaScript course tutorial video](https://youtu.be/EfAl9bwzVZk) if you are new to Javascript.
+// built-in middleware for json 
+app.use(express.json());
 
-### Academic Honesty
+//serve static files
+app.use('/', express.static(path.join(__dirname, '/public')));
 
-**DO NOT COPY FOR AN ASSIGNMENT** - Avoid plagiargism and adhere to the spirit of this [Academic Honesty Policy](https://www.freecodecamp.org/news/academic-honesty-policy/).
+// routes
+app.use('/', require('./routes/root'));
+app.use('/employees', require('./routes/api/employees'));
+
+app.all('*', (req, res) => {
+    res.status(404);
+    if (req.accepts('html')) {
+        res.sendFile(path.join(__dirname, 'views', '404.html'));
+    } else if (req.accepts('json')) {
+        res.json({ "error": "404 Not Found" });
+    } else {
+        res.type('txt').send("404 Not Found");
+    }
+});
+
+app.use(errorHandler);
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+```
+
